@@ -41,6 +41,8 @@ public interface KafkaSender<K, V> {
 
     /**
      * Creates a Kafka sender that appends records to Kafka topic partitions.
+     * note 根据配置创建一个 kafka sender。
+     *
      * @param options Configuration options of this sender. Changes made to the options
      *        after the sender is created will not be used by the sender.
      * @return new instance of Kafka sender

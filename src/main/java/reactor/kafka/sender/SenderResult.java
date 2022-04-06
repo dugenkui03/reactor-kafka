@@ -35,6 +35,8 @@ public interface SenderResult<T> {
     /**
      * Returns the record metadata returned by Kafka. May be null if send request failed.
      * See {@link #exception()} for failure reason when record metadata is null.
+     * note 调用 kafka 方法返回的响应结果，如果为 null 则表示发送失败，使用 exception 方法排查失败原因。
+     *
      * @return response metadata from Kafka {@link Producer}
      */
     RecordMetadata recordMetadata();
@@ -42,6 +44,8 @@ public interface SenderResult<T> {
     /**
      * Returns the exception associated with a send failure. This is set to null for
      * successful responses.
+     * note 发送失败的时候在这查看原因
+     *
      * @return send exception from Kafka {@link Producer} if send did not succeed even after
      * the configured retry attempts.
      */
@@ -50,6 +54,8 @@ public interface SenderResult<T> {
     /**
      * Returns the correlation metadata associated with this instance to enable this
      * result to be matched with the corresponding {@link SenderRecord} that was sent to Kafka.
+     * note 做什么匹配？
+     *
      * @return correlation metadata
      */
     T correlationMetadata();

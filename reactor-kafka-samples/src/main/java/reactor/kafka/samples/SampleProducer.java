@@ -35,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
 import reactor.kafka.sender.SenderRecord;
+import reactor.kafka.sender.SenderResult;
 
 /**
  * Sample producer application using Reactive API for Kafka.
@@ -60,26 +61,50 @@ public class SampleProducer {
     public SampleProducer(String bootstrapServers) {
 
         Map<String, Object> props = new HashMap<>();
+        // bootstrap.servers
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        // client.id
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "sample-producer");
+        // acks
         props.put(ProducerConfig.ACKS_CONFIG, "all");
+        // key.serializer
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
+        // value.serializer
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+
         SenderOptions<Integer, String> senderOptions = SenderOptions.create(props);
 
+        // DefaultKafkaSender
+        // note ?此时真正的kafka客户端其实并没有创建?
         sender = KafkaSender.create(senderOptions);
         dateFormat = DateTimeFormatter.ofPattern("HH:mm:ss:SSS z dd MMM yyyy");
     }
 
+    /**
+     * @param topic 目标 topic
+     * @param count 消息条数
+     * @param latch 计数用
+     * @throws InterruptedException
+     */
     public void sendMessages(String topic, int count, CountDownLatch latch) throws InterruptedException {
-        sender.<Integer>send(Flux.range(1, count)
-                        .map(i -> SenderRecord.create(new ProducerRecord<>(topic, i, "Message_" + i), i)))
-              .doOnError(e -> log.error("Send failed", e))
-              .subscribe(r -> {
-                  RecordMetadata metadata = r.recordMetadata();
+
+        //  创建发送的消息
+        //      是该组件定义的类
+        Flux<SenderRecord<Integer, String, Integer>> messageFlux = Flux.range(1, count)
+            .map(i -> SenderRecord.create(new ProducerRecord<>(topic, i, "Message_" + i), i));
+
+        // todo 发送消息
+        Flux<SenderResult<Integer>> senderResultFlux = sender.<Integer>send(messageFlux);
+
+        //  建立错误处理管道，并不影响结果
+        senderResultFlux = senderResultFlux.doOnError(e -> log.error("Send failed", e));
+
+        //  subscribe 是 final 方法
+        senderResultFlux.subscribe(senderResult -> {
+                  RecordMetadata metadata = senderResult.recordMetadata();
                   Instant timestamp = Instant.ofEpochMilli(metadata.timestamp());
                   System.out.printf("Message %d sent successfully, topic-partition=%s-%d offset=%d timestamp=%s\n",
-                      r.correlationMetadata(),
+                      senderResult.correlationMetadata(),
                       metadata.topic(),
                       metadata.partition(),
                       metadata.offset(),
@@ -95,8 +120,17 @@ public class SampleProducer {
     public static void main(String[] args) throws Exception {
         int count = 20;
         CountDownLatch latch = new CountDownLatch(count);
+
+        // note 创建 producer
+        // BOOTSTRAP_SERVERS: localhost:9092
         SampleProducer producer = new SampleProducer(BOOTSTRAP_SERVERS);
+
+        /**
+         * 发送消息，其实就是委托给该类中的 {@link sender}
+         * 看 sendMessages 具体实现把。
+         */
         producer.sendMessages(TOPIC, count, latch);
+
         latch.await(10, TimeUnit.SECONDS);
         producer.close();
     }

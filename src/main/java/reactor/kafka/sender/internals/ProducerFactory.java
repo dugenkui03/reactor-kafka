@@ -28,9 +28,14 @@ public class ProducerFactory {
     protected ProducerFactory() {
     }
 
+    /**
+     * note 根据配置创建原生的 kafka sender
+     */
     public <K, V> Producer<K, V> createProducer(SenderOptions<K, V> senderOptions) {
-        return new KafkaProducer<>(senderOptions.producerProperties(),
-                                   senderOptions.keySerializer(),
-                                   senderOptions.valueSerializer());
+        return new KafkaProducer<>(
+            senderOptions.producerProperties(),
+            senderOptions.keySerializer(),
+            senderOptions.valueSerializer()
+        );
     }
 }

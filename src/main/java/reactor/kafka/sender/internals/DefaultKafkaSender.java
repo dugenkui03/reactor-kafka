@@ -87,7 +87,9 @@ public class DefaultKafkaSender<K, V> implements KafkaSender<K, V>, EmitFailureH
                 return thread;
             }
         });
+
         this.hasProducer = new AtomicBoolean();
+
         this.senderOptions = options.scheduler(options.isTransactional()
                                         ? Schedulers.newSingle(options.transactionalId())
                                         : options.scheduler()
