@@ -40,13 +40,20 @@ import java.util.concurrent.atomic.AtomicReference;
 class SendSubscriber<K, V, C> implements CoreSubscriber<ProducerRecord<K, V>> {
 
     enum State {
+        // 初始化
         INIT,
+        // 活跃
         ACTIVE,
+        // "入站 完成"
         INBOUND_DONE,
+        // 完成
         COMPLETE
     }
 
+    // the Subscriber that will consume signals from this Publisher
     private final CoreSubscriber<? super SenderResult<C>> actual;
+
+    // 发送者
     private final Producer<K, V> producer;
     private final AtomicInteger inflight = new AtomicInteger();
     private final AtomicReference<Throwable> firstException = new AtomicReference<>();

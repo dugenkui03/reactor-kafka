@@ -68,6 +68,7 @@ public class DefaultKafkaSender<K, V> implements KafkaSender<K, V>, EmitFailureH
         ));
 
     private final Scheduler scheduler;
+    // 保存 kafka 真正发送消息的对象
     private final Mono<Producer<K, V>> producerMono;
     private final AtomicBoolean hasProducer;
     final SenderOptions<K, V> senderOptions;
@@ -126,19 +127,30 @@ public class DefaultKafkaSender<K, V> implements KafkaSender<K, V>, EmitFailureH
     }
 
     <T> Flux<SenderResult<T>> doSend(Publisher<? extends ProducerRecord<K, V>> records) {
+
         return producerMono
             .flatMapMany(producer -> {
                 return Flux.from(records)
-                    // Producer#send is blocking
-                    .publishOn(scheduler)
-                    .as(flux -> new FluxOperator<ProducerRecord<K, V>, SenderResult<T>>(flux) {
-                        @Override
-                        public void subscribe(CoreSubscriber<? super SenderResult<T>> s) {
-                            source.subscribe(new SendSubscriber<>(senderOptions, producer, s));
-                        }
-                    });
-            })
+                        // Producer#send is blocking note 多线程
+                        .publishOn(scheduler)
+                        .as(flux -> new FluxOperator<ProducerRecord<K, V>, SenderResult<T>>(flux) {
+                            @Override
+                            public void subscribe(CoreSubscriber<? super SenderResult<T>> s) {
+                                // FluxOperator.this
+                                // todo SendSubscriber
+                                source.subscribe
+                                    (new SendSubscriber<>(
+                                        senderOptions,
+                                        producer,
+                                        s // the Subscriber that will consume signals from this Publisher
+                                        )
+                                    );
+                            }
+                        });
+                }
+            )
             .doOnError(e -> log.trace("Send failed with exception", e))
+            // todo 看在哪能调用到 FluxOperator#subscribe，入参数 s(the Subscriber that will...) 是从哪传递过去的
             .publishOn(senderOptions.scheduler(), senderOptions.maxInFlight());
     }
 
