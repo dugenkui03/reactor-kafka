@@ -32,6 +32,8 @@ import reactor.core.publisher.Mono;
  * parent sends in the declaration order. Outgoing records of each topic partition will be delivered
  * to Kafka in the declaration order.
  * <p>
+ *
+ * <p>
  * The subscriber to KafkaOutbound is notified of completion and failure of its send sequence. If any
  * record cannot be delivered to Kafka, the outbound publisher fails with an error. Note that some
  * of the subsequent records already in flight may still be delivered. If {@link SenderOptions#stopOnError()}

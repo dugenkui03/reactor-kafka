@@ -30,10 +30,17 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * 创建 KafkaSender 的配置类
+ * @param <K>
+ * @param <V>
+ */
 public interface SenderOptions<K, V> {
 
     /**
      * Creates a sender options instance with default properties.
+     * note 使用默认属性创建配置类。
+     *
      * @return new instance of sender options
      */
     @NonNull
@@ -42,8 +49,10 @@ public interface SenderOptions<K, V> {
     }
 
     /**
-     * Creates a sender options instance with the specified config overrides for the underlying
-     * Kafka {@link Producer}.
+     * Creates a sender options instance with the specified config
+     * overrides for the underlying Kafka {@link Producer}.
+     * note 使用指定属性创建 配置类
+     *
      * @return new instance of sender options
      */
     @NonNull
@@ -52,8 +61,11 @@ public interface SenderOptions<K, V> {
     }
 
     /**
-     * Creates a sender options instance with the specified config overrides for the underlying
-     * Kafka {@link Producer}.
+     * Creates a sender options instance with the specified config
+     * overrides for the underlying Kafka {@link Producer}.
+     * note 使用属性类创建 配置类。
+     *
+     *
      * @return new instance of sender options
      */
     @NonNull
@@ -63,6 +75,8 @@ public interface SenderOptions<K, V> {
 
     /**
      * Returns the configuration properties for the underlying Kafka {@link Producer}.
+     * note 获取配置数据
+     *
      * @return configuration options for Kafka producer
      */
     @NonNull

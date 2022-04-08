@@ -33,9 +33,12 @@ import reactor.kafka.sender.internals.ProducerFactory;
  * cluster. The producer is thread-safe and can be used to publish records to
  * multiple partitions. It is recommended that a single {@link KafkaSender} is shared for each record
  * type in a client application.
+ * note 生产者，向对应的 kafka 分区发送记录。
+ *      生产者是线程安全的、可以向多个分区发送消息；
+ *      推荐在每种记录类型共享一个 KafkaSender。
  *
- * @param <K> outgoing record key type
- * @param <V> outgoing record value type
+ * @param <K> outgoing record key type 消息记录中的 Key 类型
+ * @param <V> outgoing record value type 消息记录中的 value 类型
  */
 public interface KafkaSender<K, V> {
 

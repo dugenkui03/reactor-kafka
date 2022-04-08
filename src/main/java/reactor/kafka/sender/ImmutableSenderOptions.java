@@ -31,8 +31,12 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.concurrent.Queues;
 
+/**
+ * 不可修改的配置类
+ */
 class ImmutableSenderOptions<K, V> implements SenderOptions<K, V> {
 
+    // 属性
     private final Map<String, Object> properties;
     private final Serializer<K>       keySerializer;
     private final Serializer<V>       valueSerializer;
@@ -58,6 +62,7 @@ class ImmutableSenderOptions<K, V> implements SenderOptions<K, V> {
     }
 
     ImmutableSenderOptions(Map<String, Object> properties) {
+        // 保护性拷贝
         this.properties = new HashMap<>(properties);
         keySerializer = null;
         valueSerializer = null;
